@@ -1,0 +1,419 @@
+/* --- Injected Product Card Styles --- */
+.sp-vs-tp-cheaper {
+    border: 2px solid #28a745 !important;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+    cursor: pointer;
+    position: relative;
+}
+.sp-vs-tp-expensive {
+    border: 2px solid #dc3545 !important;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+    cursor: pointer;
+    position: relative;
+}
+.sp-vs-tp-same-price {
+    border: 2px solid #ff8c00 !important;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 0 10px rgba(255, 140, 0, 0.5);
+    cursor: pointer;
+    position: relative;
+}
+.sp-vs-tp-same-price-gray {
+    border: 2px solid #ffb366 !important;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 0 8px rgba(255, 179, 102, 0.4);
+    cursor: pointer;
+    position: relative;
+}
+.sp-vs-tp-unpaired {
+    border: 2px solid #d3d3d3 !important;
+    border-radius: 8px;
+    padding: 4px;
+    box-shadow: 0 0 5px rgba(211, 211, 211, 0.3);
+}
+.sp-vs-tp-comparison-text {
+    direction: rtl;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+    font-size: 11px !important;
+    font-weight: bold;
+    text-align: right;
+    margin-bottom: 5px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+}
+.sp-vs-tp-comparison-text.sp-vs-tp-cheaper {
+    background-color: #28a745;
+}
+.sp-vs-tp-comparison-text.sp-vs-tp-expensive {
+    background-color: #dc3545;
+}
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price {
+    background-color: #ff8c00;
+}
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price-gray {
+    background-color: #ffb366;
+    color: white;
+}
+/* Hover tooltip styles - ONLY for comparison text */
+.sp-vs-tp-comparison-text.sp-vs-tp-cheaper::before,
+.sp-vs-tp-comparison-text.sp-vs-tp-expensive::before,
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price::before,
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price-gray::before {
+    content: "کلیک کنید تا به صفحه رستوران در پلتفرم مقابل بروید";
+    position: absolute;
+    top: -40px;
+    right: 50%;
+    transform: translateX(50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 999999;
+    pointer-events: none;
+    direction: rtl;
+}
+.sp-vs-tp-comparison-text.sp-vs-tp-cheaper::after,
+.sp-vs-tp-comparison-text.sp-vs-tp-expensive::after,
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price::after,
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price-gray::after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    right: 50%;
+    transform: translateX(50%);
+    border: 6px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 999999;
+    pointer-events: none;
+}
+.sp-vs-tp-comparison-text.sp-vs-tp-cheaper:hover::before,
+.sp-vs-tp-comparison-text.sp-vs-tp-expensive:hover::before,
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price:hover::before,
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price-gray:hover::before,
+.sp-vs-tp-comparison-text.sp-vs-tp-cheaper:hover::after,
+.sp-vs-tp-comparison-text.sp-vs-tp-expensive:hover::after,
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price:hover::after,
+.sp-vs-tp-comparison-text.sp-vs-tp-same-price-gray:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+.sp-vs-tp-cheaper:hover,
+.sp-vs-tp-expensive:hover,
+.sp-vs-tp-same-price:hover,
+.sp-vs-tp-same-price-gray:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+.sp-vs-tp-comparison-text:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
+/* --- Floating Widget Icon Styles --- */
+#sp-vs-tp-widget-icon {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    width: 56px;
+    height: 56px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    z-index: 999999;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    transition: all 0.3s ease;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+#sp-vs-tp-widget-icon:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+}
+
+/* --- Enhanced Floating Widget Styles --- */
+#sp-vs-tp-widget-container {
+    position: fixed;
+    top: 145px;
+    right: 20px;
+    width: 380px;
+    height: 450px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 16px 64px 0 rgba(31, 38, 135, 0.4);
+    z-index: 999998;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+    direction: rtl;
+    display: none;
+    flex-direction: column;
+    transition: all 0.3s ease-in-out;
+    overflow: hidden;
+}
+#sp-vs-tp-widget-container.show {
+    display: flex;
+}
+#sp-vs-tp-widget-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 15px 20px;
+    font-weight: bold;
+    color: white;
+    cursor: grab;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 16px;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+}
+#sp-vs-tp-widget-body {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+#sp-vs-tp-search-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+    box-sizing: border-box;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    direction: rtl;
+}
+#sp-vs-tp-search-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+#sp-vs-tp-search-results {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+    flex-grow: 1;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+}
+#sp-vs-tp-search-results::-webkit-scrollbar {
+    width: 6px;
+}
+#sp-vs-tp-search-results::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 3px;
+}
+#sp-vs-tp-search-results li {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+}
+#sp-vs-tp-search-results li:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+#sp-vs-tp-search-results li:last-child {
+    border-bottom: none;
+}
+.result-item p {
+    margin: 4px 0;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+}
+.sp-vs-tp-cheaper-text {
+    color: #28a745;
+    font-weight: bold;
+}
+.sp-vs-tp-expensive-text {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* --- Phase 2: Homepage and Service Pages Vendor Highlighting --- */
+/* Paired vendor highlighting - Green border - Target the card box directly */
+.sp-vs-tp-vendor-paired {
+    border: 2px solid #28a745 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.4) !important;
+    position: relative !important;
+}
+
+/* Hot recommendation styling for very high-rated vendors (4.5+) - Yellow border */
+.sp-vs-tp-vendor-hot-recommendation {
+    border: 2px solid #ffc107 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.6) !important;
+    position: relative !important;
+}
+
+/* Professional paired vendor badge - matching SnappFood's style */
+.sp-vs-tp-paired-vendor-badge {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background-color: #28a745 !important;
+    color: white !important;
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+    direction: rtl !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
+    line-height: 1.3 !important;
+    position: absolute !important;
+    bottom: 70px !important;
+    left: 4px !important;
+    right: 4px !important;
+    z-index: 5 !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+}
+
+/* Badge icon styling */
+.sp-vs-tp-badge-icon {
+    display: flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important;
+}
+
+.sp-vs-tp-badge-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+    fill: white !important;
+}
+
+/* Badge text styling */
+.sp-vs-tp-badge-text {
+    flex: 1 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+/* Star badge for high ratings - Top-left positioning */
+.sp-vs-tp-recommendation-badge {
+    position: absolute !important;
+    top: 8px !important;
+    left: 8px !important;
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+    padding: 4px 8px !important;
+    border-radius: 12px !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
+    direction: rtl !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    z-index: 10 !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15) !important;
+    border: 1px solid rgba(255,255,255,0.3) !important;
+}
+
+/* Vendor cards hover effect */
+.sp-vs-tp-vendor-paired:hover,
+.sp-vs-tp-vendor-hot-recommendation:hover,
+.VendorCard__VendorBox-sc-6qaz7-0.sp-vs-tp-vendor-paired:hover,
+.VendorCard__VendorBox-sc-6qaz7-0.sp-vs-tp-vendor-hot-recommendation:hover {
+    transform: translateY(-2px) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Professional badge hover effects */
+.sp-vs-tp-paired-vendor-badge:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Star badge hover effect */
+.sp-vs-tp-recommendation-badge:hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Ensure vendor cards maintain their original styling while highlighted */
+.VendorCard__VendorBox-sc-6qaz7-0.sp-vs-tp-vendor-paired,
+.VendorCard__VendorBox-sc-6qaz7-0.sp-vs-tp-vendor-hot-recommendation {
+    margin: inherit;
+    padding: inherit;
+}
+
+/* Ensure image wrapper can contain positioned badges */
+.VendorCard__ImgWrapper-sc-6qaz7-2 {
+    position: relative !important;
+}
+
+/* Ensure badges appear above all other content */
+.VendorCard__VendorBox-sc-6qaz7-0 .sp-vs-tp-paired-vendor-badge,
+.VendorCard__VendorBox-sc-6qaz7-0 .sp-vs-tp-recommendation-badge,
+.sp-vs-tp-paired-vendor-badge,
+.sp-vs-tp-recommendation-badge {
+    z-index: 100 !important;
+}
+
+/* Make sure badges don't interfere with existing elements but remain clickable */
+.sp-vs-tp-paired-vendor-badge,
+.sp-vs-tp-recommendation-badge {
+    pointer-events: auto !important;
+}
+
+/* Ensure badges work well with existing SnappFood badges */
+.sp-vs-tp-paired-vendor-badge {
+    margin-top: auto !important;
+}
+
+/* Additional responsive adjustments */
+@media (max-width: 768px) {
+    .sp-vs-tp-paired-vendor-badge {
+        font-size: 11px !important;
+        padding: 6px 10px !important;
+        gap: 4px !important;
+    }
+    
+    .sp-vs-tp-badge-icon svg {
+        width: 14px !important;
+        height: 14px !important;
+    }
+    
+    .sp-vs-tp-recommendation-badge {
+        font-size: 9px !important;
+        padding: 3px 6px !important;
+    }
+}
+
+/* Ensure badges maintain visibility with backdrop blur */
+@supports (backdrop-filter: blur(4px)) {
+    .sp-vs-tp-paired-vendor-badge {
+        background: rgba(40, 167, 69, 0.9) !important;
+        backdrop-filter: blur(4px) !important;
+        -webkit-backdrop-filter: blur(4px) !important;
+    }
+}
