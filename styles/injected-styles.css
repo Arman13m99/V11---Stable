@@ -245,6 +245,11 @@
     margin: 4px 0;
     font-family: 'IRANSansMobile', 'Vazirmatn', sans-serif !important;
 }
+.favorite-icon {
+    margin-left: 6px;
+    cursor: pointer;
+    color: #ffc107;
+}
 .sp-vs-tp-cheaper-text {
     color: #28a745;
     font-weight: bold;
