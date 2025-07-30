@@ -447,10 +447,11 @@ function renderVendorResults(results, list) {
     results.forEach(vendor => {
         const li = document.createElement('li');
         li.className = 'result-item';
-        const sfCode = vendor.vendor_mapping.sf_code;
-        const tfCode = vendor.vendor_mapping.tf_code;
-        const sfName = vendor.vendor_mapping.sf_name || '-';
-        const tfName = vendor.vendor_mapping.tf_name || '-';
+        const mapping = vendor.vendor_mapping || vendor;
+        const sfCode = mapping.sf_code;
+        const tfCode = mapping.tf_code;
+        const sfName = mapping.sf_name || '-';
+        const tfName = mapping.tf_name || '-';
         li.innerHTML = `
             <p><a class="price-source sf" href="https://snappfood.ir/restaurant/menu/${sfCode}" target="_blank">اسنپ‌فود</a> ${sfName}</p>
             <p><a class="price-source tf" href="https://tapsi.food/vendor/${tfCode}" target="_blank">تپسی‌فود</a> ${tfName}</p>
@@ -473,10 +474,13 @@ function performSearch(query, list, input) {
                 item.counterpartProduct.name.toLowerCase().includes(lower)
             );
         } else {
-            results = results.filter(v =>
-                v.vendor_mapping.sf_name.toLowerCase().includes(lower) ||
-                v.vendor_mapping.tf_name.toLowerCase().includes(lower)
-            );
+            results = results.filter(v => {
+                const m = v.vendor_mapping || v;
+                return (
+                    (m.sf_name && m.sf_name.toLowerCase().includes(lower)) ||
+                    (m.tf_name && m.tf_name.toLowerCase().includes(lower))
+                );
+            });
         }
         addToHistory(query);
     } else if (category !== 'favorites') {
