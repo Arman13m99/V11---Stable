@@ -111,6 +111,13 @@ class ExtensionState {
 
 const state = new ExtensionState();
 
+// === SEARCH STATE ===
+const SEARCH_HISTORY_KEY = 'spVsTpSearchHistory';
+const FAVORITES_KEY = 'spVsTpFavorites';
+
+let searchHistory = loadFromStorage(SEARCH_HISTORY_KEY);
+let favoriteProducts = loadFromStorage(FAVORITES_KEY);
+
 // === OPTIMIZED PAGE TYPE DETECTION ===
 const PAGE_PATTERNS = {
     'snappfood-menu': /snappfood\.ir\/restaurant\/menu\//,
@@ -334,6 +341,138 @@ function createStarBadge() {
 
 // Memoized product processing
 const processedProducts = new WeakMap();
+
+// === SEARCH WIDGET ===
+function loadFromStorage(key) {
+    try {
+        return JSON.parse(localStorage.getItem(key) || '[]');
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveToStorage(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
+}
+
+function addToHistory(query) {
+    if (!query) return;
+    const idx = searchHistory.indexOf(query);
+    if (idx !== -1) searchHistory.splice(idx, 1);
+    searchHistory.unshift(query);
+    if (searchHistory.length > 10) searchHistory.pop();
+    saveToStorage(SEARCH_HISTORY_KEY, searchHistory);
+}
+
+function toggleFavorite(name) {
+    const idx = favoriteProducts.indexOf(name);
+    if (idx !== -1) {
+        favoriteProducts.splice(idx, 1);
+    } else {
+        favoriteProducts.push(name);
+    }
+    saveToStorage(FAVORITES_KEY, favoriteProducts);
+}
+
+function isFavorite(name) {
+    return favoriteProducts.includes(name);
+}
+
+function openCounterpartVendor() {
+    if (state.currentPageType.startsWith('snappfood') && state.vendorInfo.tf_code) {
+        window.open(`https://tapsi.food/vendor/${state.vendorInfo.tf_code}`, '_blank');
+    } else if (state.currentPageType.startsWith('tapsifood') && state.vendorInfo.sf_code) {
+        window.open(`https://snappfood.ir/restaurant/menu/${state.vendorInfo.sf_code}`, '_blank');
+    }
+}
+
+function formatPrice(price) {
+    return new Intl.NumberFormat('fa-IR').format(price);
+}
+
+function renderHistory(list, input) {
+    list.innerHTML = '';
+    searchHistory.forEach(q => {
+        const li = document.createElement('li');
+        li.textContent = q;
+        li.addEventListener('click', () => {
+            input.value = q;
+            performSearch(q, list, input);
+        });
+        list.appendChild(li);
+    });
+}
+
+function renderResults(results, list) {
+    list.innerHTML = '';
+    results.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'result-item';
+        li.innerHTML = `
+            <p>${item.baseProduct.name} - ${formatPrice(item.baseProduct.price)} تومان</p>
+            <p>${item.counterpartProduct.name} - ${formatPrice(item.counterpartProduct.price)} تومان</p>
+        `;
+        const fav = document.createElement('span');
+        fav.className = 'favorite-icon';
+        fav.textContent = isFavorite(item.baseProduct.name) ? '★' : '☆';
+        fav.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleFavorite(item.baseProduct.name);
+            fav.textContent = isFavorite(item.baseProduct.name) ? '★' : '☆';
+        });
+        li.appendChild(fav);
+        li.addEventListener('click', openCounterpartVendor);
+        list.appendChild(li);
+    });
+}
+
+function performSearch(query, list, input) {
+    if (!query) {
+        renderHistory(list, input);
+        return;
+    }
+
+    const lower = query.toLowerCase();
+    const results = Object.values(state.comparisonData).filter(item =>
+        item.baseProduct.name.toLowerCase().includes(lower) ||
+        item.counterpartProduct.name.toLowerCase().includes(lower)
+    );
+    addToHistory(query);
+    renderResults(results, list);
+}
+
+function toggleWidget() {
+    const container = document.getElementById('sp-vs-tp-widget-container');
+    if (container) {
+        container.classList.toggle('show');
+    }
+}
+
+function createSearchWidget() {
+    if (document.getElementById('sp-vs-tp-widget-icon')) return;
+
+    const icon = document.createElement('div');
+    icon.id = 'sp-vs-tp-widget-icon';
+    icon.textContent = '🔍';
+    icon.addEventListener('click', toggleWidget);
+    document.body.appendChild(icon);
+
+    const container = document.createElement('div');
+    container.id = 'sp-vs-tp-widget-container';
+    container.innerHTML = `
+        <div id="sp-vs-tp-widget-header">جستجوی محصول</div>
+        <div id="sp-vs-tp-widget-body">
+            <input id="sp-vs-tp-search-input" placeholder="نام محصول..." />
+            <ul id="sp-vs-tp-search-results"></ul>
+        </div>`;
+    document.body.appendChild(container);
+
+    const input = container.querySelector('#sp-vs-tp-search-input');
+    const list = container.querySelector('#sp-vs-tp-search-results');
+
+    input.addEventListener('input', () => performSearch(input.value.trim(), list, input));
+    renderHistory(list, input);
+}
 
 function injectSnappFoodComparisons() {
     const productCards = state.domCache.get('section.ProductCard__Box-sc-1wfx2e0-0');
@@ -615,20 +754,28 @@ function setupOptimizedObserver(targetFunction, targetElements) {
 function initSnappFoodMenu() {
     console.log('🍕 Optimized SnappFood Menu initialization');
     const startTime = performance.now();
-    
-    const vendorCode = extractVendorCodeFromUrl(window.location.href, 'snappfood');
+
+    const isSnappFood = window.location.href.includes('snappfood.ir');
+    const vendorCode = extractVendorCodeFromUrl(
+        window.location.href,
+        isSnappFood ? 'snappfood' : 'tapsifood'
+    );
     if (!vendorCode) return;
-    
+
     state.performanceMetrics.apiCalls++;
-    chrome.runtime.sendMessage({
+    const msg = {
         action: "fetchPrices",
-        sfVendorCode: vendorCode,
-        sourcePlatform: "snappfood"
-    }, (response) => {
+        sourcePlatform: isSnappFood ? "snappfood" : "tapsifood"
+    };
+    if (isSnappFood) msg.sfVendorCode = vendorCode; else msg.tfVendorCode = vendorCode;
+
+    chrome.runtime.sendMessage(msg, (response) => {
         if (chrome.runtime.lastError || !response?.success) return;
         
         state.comparisonData = response.data;
         state.vendorInfo = response.vendorInfo || {};
+
+        createSearchWidget();
         
         // Setup optimized processing
         injectSnappFoodComparisons();
@@ -655,10 +802,12 @@ function initVendorHighlighting() {
         }
         
         console.log(`✅ Loaded ${state.pairedVendors.size} paired vendors`);
-        
+
         // Setup optimized processing
         processVendorElements();
         setupOptimizedObserver(debouncedProcessVendors, ['a[href*="/restaurant/menu/"]', '[class*="vendor"]']);
+
+        createSearchWidget();
         
         const initTime = performance.now() - startTime;
         console.log(`✅ Vendor highlighting completed in ${initTime.toFixed(2)}ms`);
