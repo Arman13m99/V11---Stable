@@ -78,6 +78,7 @@ class ExtensionState {
         this.processedVendors = new Set();
         this.allProductElements = new WeakSet(); // Use WeakSet for better memory management
         this.activeObservers = [];
+        this.vendorList = [];
         
         // Performance tracking
         this.performanceMetrics = {
@@ -96,6 +97,7 @@ class ExtensionState {
         this.pairedVendors = new Set();
         this.processedVendors = new Set();
         this.allProductElements = new WeakSet();
+        this.vendorList = [];
         this.domCache.clear();
     }
     
@@ -103,6 +105,7 @@ class ExtensionState {
         this.activeObservers.forEach(observer => observer.disconnect());
         this.activeObservers = [];
         this.domCache.clear();
+        this.vendorList = [];
         if (this.navigationInterval) {
             clearInterval(this.navigationInterval);
         }
@@ -117,6 +120,7 @@ const FAVORITES_KEY = 'spVsTpFavorites';
 
 let searchHistory = loadFromStorage(SEARCH_HISTORY_KEY);
 let favoriteProducts = loadFromStorage(FAVORITES_KEY);
+let currentCategory = 'all';
 
 // === OPTIMIZED PAGE TYPE DETECTION ===
 const PAGE_PATTERNS = {
@@ -413,9 +417,15 @@ function renderResults(results, list) {
         const counterLabel = baseIsSf ? 'تپسی‌فود' : 'اسنپ‌فود';
         const baseClass = baseIsSf ? 'sf' : 'tf';
         const counterClass = baseIsSf ? 'tf' : 'sf';
+        const baseUrl = baseIsSf
+            ? `https://snappfood.ir/restaurant/menu/${state.vendorInfo.sf_code}`
+            : `https://tapsi.food/vendor/${state.vendorInfo.tf_code}`;
+        const counterUrl = baseIsSf
+            ? `https://tapsi.food/vendor/${state.vendorInfo.tf_code}`
+            : `https://snappfood.ir/restaurant/menu/${state.vendorInfo.sf_code}`;
         li.innerHTML = `
-            <p><span class="price-source ${baseClass}">${baseLabel}</span> ${item.baseProduct.name} - ${formatPrice(item.baseProduct.price)} تومان</p>
-            <p><span class="price-source ${counterClass}">${counterLabel}</span> ${item.counterpartProduct.name} - ${formatPrice(item.counterpartProduct.price)} تومان</p>
+            <p><a class="price-source ${baseClass}" href="${baseUrl}" target="_blank">${baseLabel}</a> ${item.baseProduct.name} - ${formatPrice(item.baseProduct.price)} تومان</p>
+            <p><a class="price-source ${counterClass}" href="${counterUrl}" target="_blank">${counterLabel}</a> ${item.counterpartProduct.name} - ${formatPrice(item.counterpartProduct.price)} تومان</p>
         `;
         const fav = document.createElement('span');
         fav.className = 'favorite-icon';
@@ -426,39 +436,72 @@ function renderResults(results, list) {
             fav.textContent = isFavorite(item.baseProduct.name) ? '★' : '☆';
         });
         li.appendChild(fav);
+        li.querySelectorAll('a').forEach(a => a.addEventListener('click', e => e.stopPropagation()));
         li.addEventListener('click', openCounterpartVendor);
         list.appendChild(li);
     });
 }
 
-function performSearch(query, list, input) {
-    const categorySelect = document.getElementById('sp-vs-tp-category');
-    const category = categorySelect ? categorySelect.value : 'all';
+function renderVendorResults(results, list) {
+    list.innerHTML = '';
+    results.forEach(vendor => {
+        const li = document.createElement('li');
+        li.className = 'result-item';
+        const mapping = vendor.vendor_mapping || vendor;
+        const sfCode = mapping.sf_code;
+        const tfCode = mapping.tf_code;
+        const sfName = mapping.sf_name || '-';
+        const tfName = mapping.tf_name || '-';
+        li.innerHTML = `
+            <p><a class="price-source sf" href="https://snappfood.ir/restaurant/menu/${sfCode}" target="_blank">اسنپ‌فود</a> ${sfName}</p>
+            <p><a class="price-source tf" href="https://tapsi.food/vendor/${tfCode}" target="_blank">تپسی‌فود</a> ${tfName}</p>
+        `;
+        list.appendChild(li);
+    });
+}
 
-    let results = Object.values(state.comparisonData);
+function performSearch(query, list, input) {
+    const category = currentCategory;
+
+    const hasProductData = Object.keys(state.comparisonData).length > 0;
+    let results = hasProductData ? Object.values(state.comparisonData) : state.vendorList;
 
     if (query) {
         const lower = query.toLowerCase();
-        results = results.filter(item =>
-            item.baseProduct.name.toLowerCase().includes(lower) ||
-            item.counterpartProduct.name.toLowerCase().includes(lower)
-        );
+        if (hasProductData) {
+            results = results.filter(item =>
+                item.baseProduct.name.toLowerCase().includes(lower) ||
+                item.counterpartProduct.name.toLowerCase().includes(lower)
+            );
+        } else {
+            results = results.filter(v => {
+                const m = v.vendor_mapping || v;
+                return (
+                    (m.sf_name && m.sf_name.toLowerCase().includes(lower)) ||
+                    (m.tf_name && m.tf_name.toLowerCase().includes(lower))
+                );
+            });
+        }
         addToHistory(query);
     } else if (category !== 'favorites') {
         renderHistory(list, input);
     }
 
-    if (category === 'tf-cheaper') {
-        results = results.filter(r => r.priceDiff > 0);
-    } else if (category === 'sf-cheaper') {
-        results = results.filter(r => r.priceDiff < 0);
-    } else if (category === 'same-price') {
-        results = results.filter(r => r.priceDiff === 0);
-    } else if (category === 'favorites') {
-        results = results.filter(r => isFavorite(r.baseProduct.name));
-    }
+    if (hasProductData) {
+        if (category === 'tf-cheaper') {
+            results = results.filter(r => r.priceDiff > 0);
+        } else if (category === 'sf-cheaper') {
+            results = results.filter(r => r.priceDiff < 0);
+        } else if (category === 'same-price') {
+            results = results.filter(r => r.priceDiff === 0);
+        } else if (category === 'favorites') {
+            results = results.filter(r => isFavorite(r.baseProduct.name));
+        }
 
-    renderResults(results, list);
+        renderResults(results, list);
+    } else {
+        renderVendorResults(results, list);
+    }
 }
 
 function toggleWidget() {
@@ -480,26 +523,34 @@ function createSearchWidget() {
     const container = document.createElement('div');
     container.id = 'sp-vs-tp-widget-container';
     container.innerHTML = `
-        <div id="sp-vs-tp-widget-header">جستجوی محصول</div>
+        <div id="sp-vs-tp-widget-header">جستجوی محصول یا رستوران</div>
         <div id="sp-vs-tp-widget-body">
-            <select id="sp-vs-tp-category">
-                <option value="all">همه</option>
-                <option value="tf-cheaper">ارزان‌تر در تپسی‌فود</option>
-                <option value="sf-cheaper">ارزان‌تر در اسنپ‌فود</option>
-                <option value="same-price">قیمت مشابه</option>
-                <option value="favorites">محبوب‌ها</option>
-            </select>
-            <input id="sp-vs-tp-search-input" placeholder="نام محصول..." />
+            <div id="sp-vs-tp-category-buttons">
+                <button class="sp-vs-tp-category-btn active" data-category="all">همه</button>
+                <button class="sp-vs-tp-category-btn" data-category="tf-cheaper">ارزان‌تر در تپسی‌فود</button>
+                <button class="sp-vs-tp-category-btn" data-category="sf-cheaper">ارزان‌تر در اسنپ‌فود</button>
+                <button class="sp-vs-tp-category-btn" data-category="same-price">قیمت مشابه</button>
+                <button class="sp-vs-tp-category-btn" data-category="favorites">محبوب‌ها</button>
+            </div>
+            <input id="sp-vs-tp-search-input" placeholder="نام محصول یا رستوران..." />
             <ul id="sp-vs-tp-search-results"></ul>
         </div>`;
     document.body.appendChild(container);
 
     const input = container.querySelector('#sp-vs-tp-search-input');
     const list = container.querySelector('#sp-vs-tp-search-results');
-    const categorySelect = container.querySelector('#sp-vs-tp-category');
+    const buttons = container.querySelectorAll('.sp-vs-tp-category-btn');
+
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = btn.dataset.category;
+            performSearch(input.value.trim(), list, input);
+        });
+    });
 
     input.addEventListener('input', () => performSearch(input.value.trim(), list, input));
-    categorySelect.addEventListener('change', () => performSearch(input.value.trim(), list, input));
     renderHistory(list, input);
 }
 
@@ -825,6 +876,7 @@ function initVendorHighlighting() {
         if (chrome.runtime.lastError || !response?.success) return;
         
         if (response.vendors?.length) {
+            state.vendorList = response.vendors;
             response.vendors.forEach(vendor => {
                 if (vendor.sf_code) state.pairedVendors.add(vendor.sf_code);
             });
