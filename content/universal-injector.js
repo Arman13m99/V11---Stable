@@ -408,9 +408,14 @@ function renderResults(results, list) {
     results.forEach(item => {
         const li = document.createElement('li');
         li.className = 'result-item';
+        const baseIsSf = state.currentPageType.startsWith('snappfood');
+        const baseLabel = baseIsSf ? 'اسنپ‌فود' : 'تپسی‌فود';
+        const counterLabel = baseIsSf ? 'تپسی‌فود' : 'اسنپ‌فود';
+        const baseClass = baseIsSf ? 'sf' : 'tf';
+        const counterClass = baseIsSf ? 'tf' : 'sf';
         li.innerHTML = `
-            <p>${item.baseProduct.name} - ${formatPrice(item.baseProduct.price)} تومان</p>
-            <p>${item.counterpartProduct.name} - ${formatPrice(item.counterpartProduct.price)} تومان</p>
+            <p><span class="price-source ${baseClass}">${baseLabel}</span> ${item.baseProduct.name} - ${formatPrice(item.baseProduct.price)} تومان</p>
+            <p><span class="price-source ${counterClass}">${counterLabel}</span> ${item.counterpartProduct.name} - ${formatPrice(item.counterpartProduct.price)} تومان</p>
         `;
         const fav = document.createElement('span');
         fav.className = 'favorite-icon';
@@ -427,17 +432,32 @@ function renderResults(results, list) {
 }
 
 function performSearch(query, list, input) {
-    if (!query) {
+    const categorySelect = document.getElementById('sp-vs-tp-category');
+    const category = categorySelect ? categorySelect.value : 'all';
+
+    let results = Object.values(state.comparisonData);
+
+    if (query) {
+        const lower = query.toLowerCase();
+        results = results.filter(item =>
+            item.baseProduct.name.toLowerCase().includes(lower) ||
+            item.counterpartProduct.name.toLowerCase().includes(lower)
+        );
+        addToHistory(query);
+    } else if (category !== 'favorites') {
         renderHistory(list, input);
-        return;
     }
 
-    const lower = query.toLowerCase();
-    const results = Object.values(state.comparisonData).filter(item =>
-        item.baseProduct.name.toLowerCase().includes(lower) ||
-        item.counterpartProduct.name.toLowerCase().includes(lower)
-    );
-    addToHistory(query);
+    if (category === 'tf-cheaper') {
+        results = results.filter(r => r.priceDiff > 0);
+    } else if (category === 'sf-cheaper') {
+        results = results.filter(r => r.priceDiff < 0);
+    } else if (category === 'same-price') {
+        results = results.filter(r => r.priceDiff === 0);
+    } else if (category === 'favorites') {
+        results = results.filter(r => isFavorite(r.baseProduct.name));
+    }
+
     renderResults(results, list);
 }
 
@@ -462,6 +482,13 @@ function createSearchWidget() {
     container.innerHTML = `
         <div id="sp-vs-tp-widget-header">جستجوی محصول</div>
         <div id="sp-vs-tp-widget-body">
+            <select id="sp-vs-tp-category">
+                <option value="all">همه</option>
+                <option value="tf-cheaper">ارزان‌تر در تپسی‌فود</option>
+                <option value="sf-cheaper">ارزان‌تر در اسنپ‌فود</option>
+                <option value="same-price">قیمت مشابه</option>
+                <option value="favorites">محبوب‌ها</option>
+            </select>
             <input id="sp-vs-tp-search-input" placeholder="نام محصول..." />
             <ul id="sp-vs-tp-search-results"></ul>
         </div>`;
@@ -469,8 +496,10 @@ function createSearchWidget() {
 
     const input = container.querySelector('#sp-vs-tp-search-input');
     const list = container.querySelector('#sp-vs-tp-search-results');
+    const categorySelect = container.querySelector('#sp-vs-tp-category');
 
     input.addEventListener('input', () => performSearch(input.value.trim(), list, input));
+    categorySelect.addEventListener('change', () => performSearch(input.value.trim(), list, input));
     renderHistory(list, input);
 }
 
